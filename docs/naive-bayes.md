@@ -24,7 +24,7 @@ Imagine you're trying to figure out if someone will buy ice cream based on two t
 - Weather (sunny or rainy)
 - Day of week (weekend or weekday)
 
-You've collected data from 100 customers:
+You've collected data from 100 customers who visited the ice cream shop:
 - 60 bought ice cream
 - 40 didn't buy
 
@@ -43,6 +43,32 @@ Naive Bayes calculates:
 - Probability of not buying given sunny weekend
 
 Then picks whichever is higher. That's the prediction.
+
+### Let's do the math
+
+First, we calculate the base probabilities:
+- P(buy) = 60/100 = 0.60
+- P(not buy) = 40/100 = 0.40
+
+From our data, we know how often each condition appeared:
+
+**Among buyers:**
+- P(sunny | buy) = 50/60 = 0.833
+- P(weekend | buy) = 40/60 = 0.667
+
+**Among non-buyers:**
+- P(sunny | not buy) = 10/40 = 0.25
+- P(weekend | not buy) = 15/40 = 0.375
+
+Now we multiply them together (this is the "naive" part—assuming independence):
+
+**Buy score** = 0.60 × 0.833 × 0.667 = **0.333**
+
+**Not buy score** = 0.40 × 0.25 × 0.375 = **0.0375**
+
+Since 0.333 is much larger than 0.0375, the prediction is: **This customer will buy ice cream.**
+
+If you normalize these scores into probabilities, you get roughly 90% chance of buying. That makes sense—sunny weather and weekends are both strongly tied to buyers in our training data.
 
 ## The spam filter example
 
