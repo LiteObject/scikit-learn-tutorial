@@ -17,9 +17,7 @@ import numpy as np
 # Create a model
 model = RandomForestClassifier()
 
-# Train it with your data (features must be numerical arrays)
-# training_features: 2D array where each row is a device, each column is a feature
-# training_labels: 1D array of device types (0=Router, 1=Server, etc.)
+# Train it with your data (features must be numerical array
 model.fit(training_features, training_labels)
 
 # Make predictions on new data
