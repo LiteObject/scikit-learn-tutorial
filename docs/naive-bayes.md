@@ -10,7 +10,7 @@ Think of it like a doctor making a diagnosis. The patient has certain symptoms, 
 
 ## Why is it called "Naive"?
 
-Here's the thing: Naive Bayes assumes that all features are independent of each other. In real life, that's almost never true, but the algorithm doesn't care. It pretends they are anyway.
+Here's the thing: Naive Bayes assumes that the features are independent of each other *once you know the class*. In real life, that's often not true, but the algorithm pretends it is anyway.
 
 For example, if you're classifying emails as spam or not spam, Naive Bayes treats each word independently. It doesn't consider that "free" and "money" appearing together might be more suspicious than either word alone.
 
@@ -57,9 +57,11 @@ From training data, you learn:
 When a new email arrives with the words "Congratulations! You've won free tickets!", Naive Bayes:
 
 1. Looks up how often each word appears in spam vs ham
-2. Multiplies those probabilities together (this is the "naive" part)
+2. Combines those probabilities together (this is the "naive" part)
 3. Compares the final spam score vs ham score
 4. Picks the higher one
+
+In real implementations, it usually does this using log-probabilities (adding logs instead of multiplying tiny numbers) to avoid numerical underflow.
 
 ```python
 # Conceptually, it's doing something like this:
@@ -238,16 +240,18 @@ SPAM: 'Click here to claim your reward'
 |------|------|
 | Fast to train | Assumes features are independent (not always true) |
 | Works with small datasets | Can't learn interactions between features |
-| Easy to understand | Probability estimates are often wrong |
+| Easy to understand | Probability estimates are often poorly calibrated |
 | Handles many features well | Can be outperformed by other algorithms |
 | Good at multi-class problems | Sensitive to irrelevant features |
 | No parameter tuning needed | |
 
 ## Common gotchas
 
-**Zero probability problem**: If a word never appeared in spam during training, Naive Bayes thinks it can NEVER appear in spam. One unseen word kills your whole prediction. Scikit-learn handles this with "smoothing" (enabled by default).
+**Zero probability problem**: If a word never appeared in spam during training, Naive Bayes can treat it like it can NEVER appear in spam. Scikit-learn handles this with smoothing for `MultinomialNB`/`BernoulliNB` (enabled by default via `alpha`).
 
-**Feature scaling**: Unlike some algorithms, Naive Bayes doesn't really care about feature scaling. One less thing to worry about.
+For `GaussianNB`, the stability knob is different (`var_smoothing`), because it models each feature with a Gaussian distribution instead of counts.
+
+**Feature scaling**: It depends on the Naive Bayes type. For `MultinomialNB` and `BernoulliNB`, you typically want non-negative count features or 0/1 features (so standard scaling is usually a bad fit). For `GaussianNB`, scaling isn't required, but changing the scale does change the learned means/variances.
 
 **Class imbalance**: If 99% of your emails are spam, Naive Bayes might just predict "spam" for everything. Balance your training data or adjust class priors.
 
