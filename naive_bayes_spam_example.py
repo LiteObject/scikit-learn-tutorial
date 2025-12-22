@@ -79,6 +79,9 @@ def main():
         [("vectorizer", CountVectorizer()), ("classifier", MultinomialNB())]
     )
 
+    # The Pipeline itself is not a model — it's a container. The actual learning
+    # (fitting probabilities, making predictions) happens inside MultinomialNB.
+
     # ==========================================================================
     # TRAINING (model learns patterns from labeled data)
     # ==========================================================================
