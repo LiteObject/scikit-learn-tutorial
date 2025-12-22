@@ -108,7 +108,7 @@ def main():
     print("-" * 50)
     for msg, pred in zip(new_messages, predictions):
         status = "SPAM" if pred == 1 else "Not spam"
-        print(f"{status:>8}: '{msg}'")
+        print(f"{status:>{len('Not spam')}}: '{msg}'")
 
     # ==========================================================================
     # PROBABILITY SCORES (model confidence)
