@@ -75,7 +75,7 @@ class NetworkSecurityMLTutorial:
 
     def step_1_generate_and_explore_data(self):
         """Step 1: Generate data and explore it"""
-        print("🎯 STEP 1: DATA GENERATION AND EXPLORATION")
+        print("STEP 1: DATA GENERATION AND EXPLORATION")
         print("=" * 50)
 
         # Generate dataset
@@ -83,7 +83,7 @@ class NetworkSecurityMLTutorial:
             samples_per_class=100
         )
 
-        print("\n📊 Dataset Overview:")
+        print("\n Dataset Overview:")
         print(f"   Total samples: {len(X)}")
         print(f"   Features per sample: {X.shape[1]}")
         print(f"   Device types: {len(np.unique(y_device))}")
@@ -102,12 +102,12 @@ class NetworkSecurityMLTutorial:
             "High Ports",
         ]
 
-        print("\n🔧 Features we're using:")
+        print("\nFeatures we're using:")
         for i, name in enumerate(feature_names):
             print(f"   [{i}] {name}")
 
         # Show some actual data samples
-        print("\n📝 Sample Data (first 3 devices):")
+        print("\nSample Data (first 3 devices):")
         for i in range(3):
             device_name = self.data_generator.get_device_name(y_device[i])
             print(f"   Sample {i+1}: {device_name}")
@@ -133,7 +133,7 @@ class NetworkSecurityMLTutorial:
         self.y_risk_train = y_risk_train
         self.y_risk_test = y_risk_test
 
-        print("\n✂️ Data Split:")
+        print("\nData Split:")
         print(f"   Training samples: {len(X_train)}")
         print(f"   Testing samples: {len(X_test)}")
 
@@ -141,10 +141,10 @@ class NetworkSecurityMLTutorial:
 
     def step_2_build_device_classifier(self):
         """Step 2: Build and train device classification model"""
-        print("\n🎯 STEP 2: DEVICE CLASSIFICATION MODEL")
+        print("\nSTEP 2: DEVICE CLASSIFICATION MODEL")
         print("=" * 50)
 
-        print("🌳 Building Random Forest Classifier...")
+        print("Building Random Forest Classifier...")
         print("   Random Forest = Many decision trees voting together")
 
         # Create the model with specific parameters
@@ -157,11 +157,11 @@ class NetworkSecurityMLTutorial:
         )
         self.device_classifier = device_classifier
 
-        print(f"   🌲 Forest size: {device_classifier.n_estimators} trees")  # type: ignore
-        print(f"   📏 Max depth: {device_classifier.max_depth}")  # type: ignore
+        print(f"   Forest size: {device_classifier.n_estimators} trees")  # type: ignore
+        print(f"   Max depth: {device_classifier.max_depth}")  # type: ignore
 
         # Scale features (normalize them)
-        print("📊 Scaling features...")
+        print("Scaling features...")
         X_train = self.X_train
         X_test = self.X_test
         y_device_train = self.y_device_train
@@ -173,12 +173,12 @@ class NetworkSecurityMLTutorial:
         X_test_scaled = self.feature_scaler.transform(X_test)
 
         # Train the model
-        print("🎓 Training the model...")
+        print("Training the model...")
         device_classifier.fit(X_train_scaled, y_device_train)
-        print("✅ Model training complete!")
+        print("Model training complete!")
 
         # Test the model
-        print("\n🧪 Testing the model...")
+        print("\nTesting the model...")
         y_device_test = self.y_device_test
         if y_device_test is None:
             raise ValueError("Test data not available.")
@@ -186,11 +186,11 @@ class NetworkSecurityMLTutorial:
         predictions = device_classifier.predict(X_test_scaled)
         accuracy = accuracy_score(y_device_test, predictions)
 
-        print(f"🎯 Accuracy: {accuracy:.3f} ({accuracy*100:.1f}%)")
+        print(f"Accuracy: {accuracy:.3f} ({accuracy*100:.1f}%)")
 
         # Show detailed results
         device_names = [self.data_generator.get_device_name(i) for i in range(6)]
-        print("\n📋 Detailed Classification Report:")
+        print("\nDetailed Classification Report:")
         print(
             classification_report(y_device_test, predictions, target_names=device_names)
         )
@@ -210,7 +210,7 @@ class NetworkSecurityMLTutorial:
         ]
 
         importances = device_classifier.feature_importances_
-        print("\n🔥 Feature Importance (what the model cares about most):")
+        print("\nFeature Importance (what the model cares about most):")
         for name, importance in zip(feature_names, importances):
             print(f"   {name}: {importance:.3f}")
 
@@ -218,10 +218,10 @@ class NetworkSecurityMLTutorial:
 
     def step_3_build_anomaly_detector(self):
         """Step 3: Build anomaly detection model"""
-        print("\n🎯 STEP 3: ANOMALY DETECTION MODEL")
+        print("\nSTEP 3: ANOMALY DETECTION MODEL")
         print("=" * 50)
 
-        print("🕵️ Building Isolation Forest for anomaly detection...")
+        print("Building Isolation Forest for anomaly detection...")
         print("   Isolation Forest = Finds data points that are 'easy to isolate'")
         print("   Anomalies = Things that don't fit normal patterns")
 
@@ -235,8 +235,8 @@ class NetworkSecurityMLTutorial:
         )
         self.anomaly_detector = anomaly_detector
 
-        print(f"   🌲 Number of isolation trees: {num_isolation_trees}")
-        print(f"   ⚠️ Expected contamination: {contamination_rate * 100}%")
+        print(f"   Number of isolation trees: {num_isolation_trees}")
+        print(f"   Expected contamination: {contamination_rate * 100}%")
 
         # Train on scaled training data
         X_train = self.X_train
@@ -245,9 +245,9 @@ class NetworkSecurityMLTutorial:
 
         X_train_scaled = self.feature_scaler.transform(X_train)
 
-        print("🎓 Training anomaly detector...")
+        print("Training anomaly detector...")
         anomaly_detector.fit(X_train_scaled)
-        print("✅ Anomaly detector training complete!")
+        print("Anomaly detector training complete!")
 
         # Test anomaly detection
         X_test = self.X_test
@@ -264,13 +264,13 @@ class NetworkSecurityMLTutorial:
         num_anomalies = np.sum(anomaly_predictions == -1)
         anomaly_percentage = (num_anomalies / len(anomaly_predictions)) * 100
 
-        print("\n🔍 Anomaly Detection Results:")
+        print("\nAnomaly Detection Results:")
         print(f"   Total test samples: {len(anomaly_predictions)}")
         print(f"   Detected anomalies: {num_anomalies}")
         print(f"   Anomaly rate: {anomaly_percentage:.1f}%")
 
         # Show some examples
-        print("\n🔬 Example Anomaly Scores (lower = more anomalous):")
+        print("\nExample Anomaly Scores (lower = more anomalous):")
         for i in range(min(5, len(anomaly_scores))):
             status = "ANOMALY" if anomaly_predictions[i] == -1 else "NORMAL"
             device_type = self.data_generator.get_device_name(y_device_test[i])
@@ -280,10 +280,10 @@ class NetworkSecurityMLTutorial:
 
     def step_4_build_risk_predictor(self):
         """Step 4: Build risk prediction model"""
-        print("\n🎯 STEP 4: RISK PREDICTION MODEL")
+        print("\nSTEP 4: RISK PREDICTION MODEL")
         print("=" * 50)
 
-        print("⚡ Building Random Forest Regressor for risk prediction...")
+        print("Building Random Forest Regressor for risk prediction...")
         print("   Regression = Predicting continuous numbers (0.0 to 1.0 risk)")
         print("   Classification = Predicting categories (device types)")
 
@@ -293,7 +293,7 @@ class NetworkSecurityMLTutorial:
         )
         self.risk_predictor = risk_predictor
 
-        print(f"   🌲 Forest size: {risk_predictor.n_estimators} trees")  # type: ignore
+        print(f"   Forest size: {risk_predictor.n_estimators} trees")  # type: ignore
 
         # Train the model
         X_train = self.X_train
@@ -303,9 +303,9 @@ class NetworkSecurityMLTutorial:
 
         X_train_scaled = self.feature_scaler.transform(X_train)
 
-        print("🎓 Training risk predictor...")
+        print("Training risk predictor...")
         risk_predictor.fit(X_train_scaled, y_risk_train)
-        print("✅ Risk predictor training complete!")
+        print("Risk predictor training complete!")
 
         # Test the model
         X_test = self.X_test
@@ -322,13 +322,13 @@ class NetworkSecurityMLTutorial:
         mae = mean_absolute_error(y_risk_test, risk_predictions)
         r2 = r2_score(y_risk_test, risk_predictions)
 
-        print("\n📊 Risk Prediction Performance:")
+        print("\nRisk Prediction Performance:")
         print(f"   Mean Absolute Error: {mae:.3f}")
         print(f"   Mean Squared Error: {mse:.3f}")
         print(f"   R² Score: {r2:.3f} (closer to 1.0 = better)")
 
         # Show some examples
-        print("\n🔬 Example Risk Predictions:")
+        print("\nExample Risk Predictions:")
         for i in range(min(5, len(risk_predictions))):
             actual = y_risk_test[i]
             predicted = risk_predictions[i]
@@ -339,7 +339,7 @@ class NetworkSecurityMLTutorial:
 
     def step_5_test_on_new_data(self):
         """Step 5: Test all models on completely new data"""
-        print("\n🎯 STEP 5: TESTING ON NEW DATA")
+        print("\nSTEP 5: TESTING ON NEW DATA")
         print("=" * 50)
 
         # Create some test cases
@@ -366,7 +366,7 @@ class NetworkSecurityMLTutorial:
             },
         ]
 
-        print("🧪 Testing models on new, realistic scenarios...")
+        print("Testing models on new, realistic scenarios...")
 
         for i, test_case in enumerate(test_cases, 1):
             print(f"\n--- Test Case {i}: {test_case['name']} ---")
@@ -403,7 +403,7 @@ class NetworkSecurityMLTutorial:
             anomaly_score = anomaly_detector.decision_function(features_scaled)[0]
             is_anomaly = anomaly_score < -0.1  # Threshold for anomaly
 
-            print("🤖 AI Analysis Results:")
+            print("AI Analysis Results:")
             print(
                 f"   Device Type: {device_name} (confidence: {device_confidence:.3f})"
             )
@@ -432,22 +432,20 @@ class NetworkSecurityMLTutorial:
         self.step_5_test_on_new_data()
 
         # Summary
-        print("\n🏆 TUTORIAL COMPLETE!")
+        print("\nTUTORIAL COMPLETE!")
         print("=" * 50)
-        print("🎯 What you've learned:")
-        print(f"   ✅ Random Forest Classification (accuracy: {accuracy:.3f})")
-        print(
-            f"   ✅ Isolation Forest Anomaly Detection ({anomaly_rate:.1f}% anomalies)"
-        )
-        print(f"   ✅ Random Forest Regression (R²: {r2:.3f})")
-        print("   ✅ Feature Engineering and Data Preprocessing")
-        print("   ✅ Model Training, Testing, and Evaluation")
+        print("What you've learned:")
+        print(f"   Random Forest Classification (accuracy: {accuracy:.3f})")
+        print(f"   Isolation Forest Anomaly Detection ({anomaly_rate:.1f}% anomalies)")
+        print(f"  Random Forest Regression (R²: {r2:.3f})")
+        print("   Feature Engineering and Data Preprocessing")
+        print("   Model Training, Testing, and Evaluation")
 
-        print("\n🚀 Next steps:")
-        print("   📚 Try different algorithms (SVM, Neural Networks, etc.)")
-        print("   🔧 Experiment with feature engineering")
-        print("   📊 Add data visualization with matplotlib")
-        print("   🌐 Apply to your own datasets!")
+        print("\nNext steps:")
+        print("   Try different algorithms (SVM, Neural Networks, etc.)")
+        print("   Experiment with feature engineering")
+        print("   Add data visualization with matplotlib")
+        print("   Apply to your own datasets!")
 
 
 # Run the tutorial
