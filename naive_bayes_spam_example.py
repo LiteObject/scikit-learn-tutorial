@@ -90,6 +90,12 @@ def main():
     spam_detector.fit(messages, labels)
     print("Model trained on", len(messages), "messages\n")
 
+    # Save the model to disk
+    # joblib.dump(spam_detector, 'spam_detector_model.joblib')
+
+    # Later, in production, load it
+    # loaded_model = joblib.load('spam_detector_model.joblib')
+
     # ==========================================================================
     # INFERENCE / PREDICTION (applying the trained model to new data)
     # ==========================================================================
