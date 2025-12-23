@@ -28,6 +28,7 @@ message = [
 # Use a custom token_pattern to include single-letter words like "I"
 # vec = CountVectorizer(token_pattern=r"(?u)\b\w+\b")
 
+# Initialize the "Bag of Words" model
 vec = CountVectorizer()
 result = vec.fit_transform(message).toarray()
 print(result)
