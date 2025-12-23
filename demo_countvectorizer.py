@@ -30,8 +30,21 @@ message = [
 
 # Initialize the "Bag of Words" model
 vec = CountVectorizer()
-result = vec.fit_transform(message).toarray()
+
+# 1. Fit and Transform (Returns a Sparse Matrix)
+sparse_matrix = vec.fit_transform(message)
+
+# 2. Convert to Dense Array (for readability ONLY)
+#    In real projects, you rarely do this.
+#    We do it here so we can print the matrix and see the 0s.
+#    Scikit-learn models accept the sparse_matrix directly.
+result = sparse_matrix.toarray()  # type: ignore
+
+print("Dense Array (Stores every value, including zeros):")
 print(result)
+
+print("\nSparse Matrix (Stores only non-zero values):")
+print(sparse_matrix)
 
 # Print the words that correspond to the columns
 print("\nVocabulary:")
