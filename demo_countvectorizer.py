@@ -1,6 +1,8 @@
 """
 CountVectorizer Demo
 
+CountVectorizer is a feature extraction tool from sklearn.
+
 This script demonstrates the basic usage of Scikit-Learn's CountVectorizer
 for converting text into numeric feature vectors (Bag of Words).
 
@@ -34,17 +36,17 @@ vec = CountVectorizer()
 # 1. Fit and Transform (Returns a Sparse Matrix)
 sparse_matrix = vec.fit_transform(message)
 
+print("\nSparse Matrix (Stores only non-zero values):")
+print(sparse_matrix)
+
 # 2. Convert to Dense Array (for readability ONLY)
 #    In real projects, you rarely do this.
 #    We do it here so we can print the matrix and see the 0s.
 #    Scikit-learn models accept the sparse_matrix directly.
 result = sparse_matrix.toarray()  # type: ignore
 
-print("Dense Array (Stores every value, including zeros):")
+print("\nDense Array (Stores every value, including zeros):")
 print(result)
-
-print("\nSparse Matrix (Stores only non-zero values):")
-print(sparse_matrix)
 
 # Print the words that correspond to the columns
 print("\nVocabulary:")
