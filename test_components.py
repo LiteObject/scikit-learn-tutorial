@@ -6,8 +6,8 @@ Simple examples to test individual components of the tutorial
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-from data_generator import NetworkDataGenerator
-from model_trainer import NetworkSecurityMLTutorial
+from data_generator import EmailDataGenerator
+from model_trainer import EmailSpamMLTutorial
 
 
 def test_data_generation() -> None:
@@ -17,26 +17,26 @@ def test_data_generation() -> None:
     Tests:
     - Feature shapes match expectations
     - Feature values are within valid ranges
-    - Labels correspond to valid device types
+    - Labels correspond to valid categories (spam/ham)
     """
-    print("🧪 Testing Data Generation...")
+    print("Testing Data Generation...")
 
-    generator = NetworkDataGenerator()
+    generator = EmailDataGenerator()
 
     # Test feature extraction
     test_cases = [
-        [22, 80, 443],  # Web server
-        [23, 21, 3389, 445],  # Vulnerable device
-        [80],  # Simple IoT
-        [1337, 31337, 8080],  # Unusual ports
+        "Free money! Click now to claim your prize!",  # Spam
+        "Hi, please review the attached report for tomorrow's meeting.",  # Ham
+        "Congratulations! You have won!",  # Spam
+        "Thanks for your feedback on the project proposal.",  # Ham
     ]
 
-    for i, ports in enumerate(test_cases, 1):
-        features = generator.extract_features(ports)
+    for i, text in enumerate(test_cases, 1):
+        features = generator.extract_features(text)
         # Show first 5 features
-        print(f"   Test {i}: {ports} -> Features: {features[:5]}...")
+        print(f"   Test {i}: '{text[:30]}...' -> Features: {features[:5]}...")
 
-    print("✅ Data generation test complete!\n")
+    print("Data generation test complete!\n")
 
 
 def test_model_training() -> None:
@@ -48,45 +48,48 @@ def test_model_training() -> None:
     - Models produce valid predictions
     - Models are fitted and ready for evaluation
     """
-    print("🧪 Testing Model Training...")
+    print("Testing Model Training...")
 
     # Create tutorial instance
-    tutorial = NetworkSecurityMLTutorial()
+    tutorial = EmailSpamMLTutorial()
 
     # Generate small dataset
-    features_matrix, device_labels, risk_scores = (
+    features_matrix, category_labels, spam_scores, texts = (
         tutorial.data_generator.generate_dataset(samples_per_class=20)
     )
 
     (
         tutorial.X_train,
         tutorial.X_test,
-        tutorial.y_device_train,
-        tutorial.y_device_test,
-        tutorial.y_risk_train,
-        tutorial.y_risk_test,
+        tutorial.y_category_train,
+        tutorial.y_category_test,
+        tutorial.y_spam_score_train,
+        tutorial.y_spam_score_test,
+        tutorial.texts_train,
+        tutorial.texts_test,
     ) = train_test_split(
         features_matrix,
-        device_labels,
-        risk_scores,
+        category_labels,
+        spam_scores,
+        texts,
         test_size=0.2,
         random_state=42,
-        stratify=device_labels,
+        stratify=category_labels,
     )
 
-    # Test device classifier
-    accuracy = tutorial.step_2_build_device_classifier()
-    print(f"   Device classifier accuracy: {accuracy:.3f}")
+    # Test spam classifier
+    accuracy = tutorial.step_2_build_spam_classifier()
+    print(f"   Spam classifier accuracy: {accuracy:.3f}")
 
     # Test anomaly detector
     num_anomalies, anomaly_rate = tutorial.step_3_build_anomaly_detector()
     print(f"   Anomaly detection: {num_anomalies} anomalies ({anomaly_rate:.1f}%)")
 
-    # Test risk predictor
-    _, r2 = tutorial.step_4_build_risk_predictor()
-    print(f"   Risk prediction R²: {r2:.3f}")
+    # Test spam score predictor
+    _, r2 = tutorial.step_4_build_spam_score_predictor()
+    print(f"   Spam score prediction R2: {r2:.3f}")
 
-    print("✅ Model training test complete!\n")
+    print("Model training test complete!\n")
 
 
 def test_custom_prediction() -> None:
@@ -94,64 +97,70 @@ def test_custom_prediction() -> None:
     Verify that trained models generate valid predictions.
 
     Tests:
-    - Classification predictions are valid device type IDs
-    - Regression predictions are in valid risk range [0, 1]
-    - Models handle arbitrary port configurations
+    - Classification predictions are valid category IDs (0=ham, 1=spam)
+    - Regression predictions are in valid spam score range [0, 1]
+    - Models handle arbitrary email text
     """
-    print("🧪 Testing Custom Predictions...")
+    print("Testing Custom Predictions...")
 
     # Quick training
-    tutorial = NetworkSecurityMLTutorial()
-    features_matrix, device_labels, risk_scores = (
+    tutorial = EmailSpamMLTutorial()
+    features_matrix, category_labels, spam_scores, texts = (
         tutorial.data_generator.generate_dataset(samples_per_class=30)
     )
 
     (
         tutorial.X_train,
         tutorial.X_test,
-        tutorial.y_device_train,
-        tutorial.y_device_test,
-        tutorial.y_risk_train,
-        tutorial.y_risk_test,
+        tutorial.y_category_train,
+        tutorial.y_category_test,
+        tutorial.y_spam_score_train,
+        tutorial.y_spam_score_test,
+        tutorial.texts_train,
+        tutorial.texts_test,
     ) = train_test_split(
         features_matrix,
-        device_labels,
-        risk_scores,
+        category_labels,
+        spam_scores,
+        texts,
         test_size=0.2,
         random_state=42,
-        stratify=device_labels,
+        stratify=category_labels,
     )
 
     # Train models quickly
-    tutorial.step_2_build_device_classifier()
+    tutorial.step_2_build_spam_classifier()
     tutorial.step_3_build_anomaly_detector()
-    tutorial.step_4_build_risk_predictor()
+    tutorial.step_4_build_spam_score_predictor()
 
-    device_classifier = tutorial.device_classifier
-    risk_predictor = tutorial.risk_predictor
+    spam_classifier = tutorial.spam_classifier
+    spam_score_predictor = tutorial.spam_score_predictor
 
-    if device_classifier is None or risk_predictor is None:
+    if spam_classifier is None or spam_score_predictor is None:
         raise ValueError("Models failed to train during custom prediction test.")
 
-    # Test custom devices
-    test_devices = [
-        ("Web Server", [22, 80, 443]),
-        ("Suspicious Device", [23, 21, 3389, 445]),
-        ("IoT Device", [80]),
+    # Test custom emails
+    test_emails = [
+        (
+            "Work Email",
+            "Hi team, please review the report before our meeting tomorrow.",
+        ),
+        ("Obvious Spam", "Congratulations! You won FREE cash! Claim your prize now!"),
+        ("Newsletter", "Thanks for subscribing. Here's your weekly update."),
     ]
 
-    for name, ports in test_devices:
-        features = tutorial.data_generator.extract_features(ports)
+    for name, text in test_emails:
+        features = tutorial.data_generator.extract_features(text)
         features_array = np.array([features])
         features_scaled = tutorial.feature_scaler.transform(features_array)
 
-        device_pred = device_classifier.predict(features_scaled)[0]
-        device_name = tutorial.data_generator.get_device_name(device_pred)
-        risk_score = risk_predictor.predict(features_scaled)[0]
+        category_pred = spam_classifier.predict(features_scaled)[0]
+        category_name = tutorial.data_generator.get_category_name(category_pred)
+        spam_score = spam_score_predictor.predict(features_scaled)[0]
 
-        print(f"   {name}: Predicted as {device_name}, Risk: {risk_score:.3f}")
+        print(f"   {name}: Predicted as {category_name}, Spam Score: {spam_score:.3f}")
 
-    print("✅ Custom prediction test complete!\n")
+    print("Custom prediction test complete!\n")
 
 
 def main() -> None:
@@ -161,7 +170,7 @@ def main() -> None:
     Runs functional tests for data generation, model training, and predictions.
     Displays summary of test results and instructions for running the full tutorial.
     """
-    print("🎓 SCIKIT-LEARN TUTORIAL COMPONENT TESTS")
+    print("SCIKIT-LEARN TUTORIAL COMPONENT TESTS")
     print("=" * 50)
 
     try:
@@ -169,16 +178,16 @@ def main() -> None:
         test_model_training()
         test_custom_prediction()
 
-        print("🎉 All tests passed! Tutorial is ready to use.")
-        print("\n📚 Run the full tutorial with:")
-        print("   python network_security_ml.py")
+        print("All tests passed! Tutorial is ready to use.")
+        print("\nRun the full tutorial with:")
+        print("   python email_spam_ml.py")
 
     except ImportError as e:
-        print(f"❌ Import error: {e}")
-        print("💡 Please run 'python setup.py' first to install dependencies.")
+        print(f"Import error: {e}")
+        print("Please run 'python setup.py' first to install dependencies.")
     except Exception as e:  # pylint: disable=broad-except
-        print(f"❌ Test failed: {e}")
-        print("💡 Please check your installation.")
+        print(f"Test failed: {e}")
+        print("Please check your installation.")
 
 
 if __name__ == "__main__":

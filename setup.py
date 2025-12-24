@@ -22,9 +22,9 @@ def install_requirements():
     """Install required packages"""
     print("\n📦 Installing required packages...")
     try:
-        subprocess.check_call([
-            sys.executable, "-m", "pip", "install", "-r", "requirements.txt"
-        ])
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"]
+        )
         print("✅ All packages installed successfully!")
         return True
     except subprocess.CalledProcessError as e:
@@ -41,7 +41,7 @@ def verify_installation():
         ("numpy", "NumPy"),
         ("pandas", "Pandas"),
         ("matplotlib", "Matplotlib"),
-        ("seaborn", "Seaborn")
+        ("seaborn", "Seaborn"),
     ]
 
     all_good = True
@@ -61,6 +61,7 @@ def run_quick_test():
     print("\n🧪 Running quick test...")
     try:
         from data_generator import NetworkDataGenerator
+
         generator = NetworkDataGenerator()
 
         # Test feature extraction
@@ -112,9 +113,9 @@ def main():
     print("=" * 60)
     print("🚀 You're ready to start the tutorial!")
     print("\n📚 To run the tutorial:")
-    print("   Basic tutorial:      python network_security_ml.py")
-    print("   Interactive mode:    python network_security_ml.py --mode interactive")
-    print("   With visualizations: python network_security_ml.py --mode advanced --visualize")
+    print("   Basic tutorial:      python email_spam_ml.py")
+    print("   Interactive mode:    python email_spam_ml.py --mode interactive")
+    print("   With visualizations: python email_spam_ml.py --mode advanced --visualize")
 
     return True
 

@@ -2,7 +2,7 @@
 
 This module provides comprehensive visualization and analysis tools for
 evaluating trained machine learning models. The ModelEvaluator class generates
-confusion matrices, feature importance plots, risk prediction scatter plots,
+confusion matrices, feature importance plots, spam score prediction scatter plots,
 and learning curves to help interpret model performance and behavior.
 """
 
@@ -19,7 +19,7 @@ class ModelEvaluator:
 
     This class generates comprehensive visualizations that help interpret
     model performance and behavior. Includes confusion matrices, feature
-    importance plots, risk predictions scatter plots, and learning curves.
+    importance plots, spam score predictions scatter plots, and learning curves.
     """
 
     def __init__(self, tutorial_instance):
@@ -27,7 +27,7 @@ class ModelEvaluator:
         Initialize the evaluator with a trained tutorial instance.
 
         Args:
-            tutorial_instance: NetworkSecurityMLTutorial with trained models.
+            tutorial_instance: EmailSpamMLTutorial with trained models.
         """
         self.tutorial = tutorial_instance
         self.setup_plotting()
@@ -44,72 +44,70 @@ class ModelEvaluator:
 
     def plot_confusion_matrix(self) -> None:
         """
-        Generate a confusion matrix heatmap for device classification.
+        Generate a confusion matrix heatmap for spam/ham classification.
 
-        Displays which device types are correctly classified and which are
-        confused with other types. Diagonal entries represent correct predictions.
+        Displays which categories are correctly classified and which are
+        confused. Diagonal entries represent correct predictions.
         """
-        print("📊 Creating Confusion Matrix...")
+        print("Creating Confusion Matrix...")
 
         # Get predictions
         X_test_scaled = self.tutorial.feature_scaler.transform(self.tutorial.X_test)
-        predictions = self.tutorial.device_classifier.predict(X_test_scaled)
+        predictions = self.tutorial.spam_classifier.predict(X_test_scaled)
 
         # Create confusion matrix
-        cm = confusion_matrix(self.tutorial.y_device_test, predictions)
-        device_names = [
-            self.tutorial.data_generator.get_device_name(i) for i in range(6)
+        cm = confusion_matrix(self.tutorial.y_category_test, predictions)
+        category_names = [
+            self.tutorial.data_generator.get_category_name(i) for i in range(2)
         ]
 
         # Plot
-        plt.figure(figsize=(10, 8))
+        plt.figure(figsize=(8, 6))
         sns.heatmap(
             cm,
             annot=True,
             fmt="d",
             cmap="Blues",
-            xticklabels=device_names,
-            yticklabels=device_names,
+            xticklabels=category_names,
+            yticklabels=category_names,
         )
-        plt.title("Device Classification Confusion Matrix")
-        plt.ylabel("Actual Device Type")
-        plt.xlabel("Predicted Device Type")
-        plt.xticks(rotation=45)
-        plt.yticks(rotation=0)
+        plt.title("Spam/Ham Classification Confusion Matrix")
+        plt.ylabel("Actual Category")
+        plt.xlabel("Predicted Category")
         plt.tight_layout()
         plt.show()
 
     def plot_feature_importance(self) -> None:
         """
-        Generate a bar plot showing feature importance in device classification.
+        Generate a bar plot showing feature importance in spam classification.
 
         RandomForest computes feature importance based on how much each feature
         contributes to reducing impurity. High importance indicates the feature
-        is critical for distinguishing between device types.
+        is critical for distinguishing between spam and ham.
         """
-        print("🔥 Plotting Feature Importance...")
+        print("Plotting Feature Importance...")
 
         feature_names = [
-            "Total Ports",
-            "Has SSH",
-            "Has HTTP",
-            "Has HTTPS",
-            "Has Telnet",
-            "Has RDP",
-            "Has SMB",
-            "Has FTP",
-            "Port Spread",
-            "High Ports",
+            "Word Count",
+            "Spam Words",
+            "Ham Words",
+            "Spam Ratio",
+            "Has Urgency",
+            "Has Money Words",
+            "Has Exclamation",
+            "Exclamation Count",
+            "Avg Word Length",
+            "Uppercase Ratio",
         ]
 
-        importances = self.tutorial.device_classifier.feature_importances_
+        importances = self.tutorial.spam_classifier.feature_importances_
 
         # Create plot
         plt.figure(figsize=(10, 6))
         indices = np.argsort(importances)[::-1]  # Sort by importance
 
         plt.bar(range(len(importances)), importances[indices])
-        plt.title("Feature Importance in Device Classification")
+        plt.title("Feature Importance in Spam Classification")
         plt.xlabel("Features")
         plt.ylabel("Importance Score")
         plt.xticks(
@@ -118,24 +116,26 @@ class ModelEvaluator:
         plt.tight_layout()
         plt.show()
 
-    def plot_risk_predictions(self) -> None:
+    def plot_spam_score_predictions(self) -> None:
         """
-        Generate a scatter plot comparing actual vs predicted risk scores.
+        Generate a scatter plot comparing actual vs predicted spam scores.
 
         Points close to the diagonal red line indicate accurate predictions.
         Distance from the line indicates prediction error.
         """
-        print("⚡ Plotting Risk Prediction Results...")
+        print("Plotting Spam Score Prediction Results...")
 
         X_test_scaled = self.tutorial.feature_scaler.transform(self.tutorial.X_test)
-        risk_predictions = self.tutorial.risk_predictor.predict(X_test_scaled)
+        spam_score_predictions = self.tutorial.spam_score_predictor.predict(
+            X_test_scaled
+        )
 
         plt.figure(figsize=(10, 6))
-        plt.scatter(self.tutorial.y_risk_test, risk_predictions, alpha=0.6)
+        plt.scatter(self.tutorial.y_spam_score_test, spam_score_predictions, alpha=0.6)
         plt.plot([0, 1], [0, 1], "r--", lw=2)  # Perfect prediction line
-        plt.xlabel("Actual Risk Score")
-        plt.ylabel("Predicted Risk Score")
-        plt.title("Risk Prediction Accuracy")
+        plt.xlabel("Actual Spam Score")
+        plt.ylabel("Predicted Spam Score")
+        plt.title("Spam Score Prediction Accuracy")
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
         plt.show()
@@ -148,15 +148,15 @@ class ModelEvaluator:
         Helps diagnose whether the model is underfitting (high bias) or
         overfitting (high variance), and whether more training data would help.
         """
-        print("📈 Creating Learning Curves...")
+        print("Creating Learning Curves...")
 
         X_train_scaled = self.tutorial.feature_scaler.transform(self.tutorial.X_train)
 
         # Pylance may think this returns 5 values, so we slice the first 3
         lc_result = learning_curve(
-            self.tutorial.device_classifier,
+            self.tutorial.spam_classifier,
             X_train_scaled,
-            self.tutorial.y_device_train,
+            self.tutorial.y_category_train,
             cv=5,
             n_jobs=-1,
             train_sizes=np.linspace(0.1, 1.0, 10),
@@ -172,7 +172,7 @@ class ModelEvaluator:
         )
         plt.xlabel("Training Set Size")
         plt.ylabel("Accuracy Score")
-        plt.title("Learning Curves - Device Classification")
+        plt.title("Learning Curves - Spam Classification")
         plt.legend()
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
@@ -182,32 +182,32 @@ class ModelEvaluator:
         """
         Generate all visualizations and display comprehensive analysis report.
 
-        Creates confusion matrix, feature importance, risk predictions, and
+        Creates confusion matrix, feature importance, spam score predictions, and
         learning curves visualizations. Provides guidance on interpreting results.
         """
-        print("\n📋 COMPREHENSIVE MODEL ANALYSIS REPORT")
+        print("\nCOMPREHENSIVE MODEL ANALYSIS REPORT")
         print("=" * 60)
 
         # Run all visualizations
         self.plot_confusion_matrix()
         self.plot_feature_importance()
-        self.plot_risk_predictions()
+        self.plot_spam_score_predictions()
         self.plot_learning_curves()
 
-        print("✅ All visualizations complete!")
-        print("💡 Key insights to look for:")
-        print("   🎯 Confusion Matrix: Which device types get confused?")
-        print("   🔥 Feature Importance: Which network patterns matter most?")
-        print("   ⚡ Risk Predictions: How accurate are our risk assessments?")
-        print("   📈 Learning Curves: Do we need more training data?")
+        print("All visualizations complete!")
+        print("Key insights to look for:")
+        print("   Confusion Matrix: How well does it distinguish spam from ham?")
+        print("   Feature Importance: Which text patterns matter most?")
+        print("   Spam Score Predictions: How accurate are our spam scores?")
+        print("   Learning Curves: Do we need more training data?")
 
 
 # Usage example
 if __name__ == "__main__":
-    from model_trainer import NetworkSecurityMLTutorial
+    from model_trainer import EmailSpamMLTutorial
 
     # Run the tutorial first
-    tutorial = NetworkSecurityMLTutorial()
+    tutorial = EmailSpamMLTutorial()
     tutorial.run_complete_tutorial()
 
     # Then create advanced analysis

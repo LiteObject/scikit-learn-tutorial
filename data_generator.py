@@ -1,10 +1,10 @@
-"""Synthetic network data generation and feature engineering.
+"""Synthetic email data generation and feature engineering.
 
-This module handles creating realistic network traffic patterns for training
-machine learning models. The NetworkDataGenerator class simulates different
-device types (IoT, servers, workstations, etc.) with typical port configurations
-and risk profiles. It performs critical feature engineering to convert raw port
-data into numerical features suitable for scikit-learn models.
+This module handles creating realistic email samples for training
+machine learning models. The EmailDataGenerator class simulates different
+email types (spam and ham) with typical characteristics and patterns.
+It performs critical feature engineering to convert raw email text
+into numerical features suitable for scikit-learn models.
 """
 
 import random
@@ -13,235 +13,380 @@ from typing import List, Tuple
 import numpy as np
 
 
-class NetworkDataGenerator:
+class EmailDataGenerator:
     """
-    Generates synthetic network traffic data for security classification.
+    Generates synthetic email data for spam/ham classification.
 
-    This class simulates realistic network patterns by creating device profiles
-    with specific port configurations. It performs feature engineering to convert
-    raw port data into a 10-dimensional feature vector suitable for ML models.
+    This class simulates realistic email patterns by creating message samples
+    with specific word patterns and characteristics. It performs feature
+    engineering to convert raw text into numerical features suitable for ML models.
     """
 
     def __init__(self):
-        # Define realistic device patterns based on real networks
-        self.device_patterns = {
+        # Define spam and ham vocabulary patterns
+        self.spam_words = [
+            "free",
+            "winner",
+            "cash",
+            "prize",
+            "urgent",
+            "click",
+            "offer",
+            "limited",
+            "congratulations",
+            "money",
+            "credit",
+            "discount",
+            "deal",
+            "buy",
+            "cheap",
+            "earn",
+            "income",
+            "million",
+            "opportunity",
+            "reward",
+            "bonus",
+            "gift",
+            "claim",
+            "selected",
+            "exclusive",
+            "guaranteed",
+            "instant",
+            "sale",
+        ]
+
+        self.ham_words = [
+            "meeting",
+            "project",
+            "report",
+            "schedule",
+            "team",
+            "review",
+            "update",
+            "tomorrow",
+            "thanks",
+            "attached",
+            "please",
+            "regards",
+            "discuss",
+            "feedback",
+            "question",
+            "help",
+            "information",
+            "confirm",
+            "available",
+            "deadline",
+            "proposal",
+            "draft",
+            "call",
+            "agenda",
+            "notes",
+            "summary",
+            "forward",
+            "appreciate",
+            "colleague",
+        ]
+
+        # Common neutral words that appear in both
+        self.neutral_words = [
+            "the",
+            "a",
+            "is",
+            "are",
+            "to",
+            "for",
+            "you",
+            "your",
+            "this",
+            "that",
+            "we",
+            "will",
+            "be",
+            "have",
+            "from",
+            "with",
+            "can",
+            "get",
+        ]
+
+        # Email templates for realistic generation
+        self.spam_templates = [
+            "You have been {word1}! {word2} your {word3} now!",
+            "{word1}! {word2} offer just for you! {word3} today!",
+            "Urgent: {word1} {word2} waiting. {word3} immediately!",
+            "{word1} {word2}! Don't miss this {word3}!",
+            "Congratulations! You're a {word1}! Claim your {word2} {word3}!",
+        ]
+
+        self.ham_templates = [
+            "Hi, just wanted to {word1} about the {word2}. {word3}.",
+            "Please {word1} the {word2} when you get a chance. {word3}.",
+            "Following up on our {word1}. The {word2} looks good. {word3}.",
+            "Can you {word1} the {word2}? Let me know. {word3}.",
+            "Thanks for the {word1}. I'll {word2} the {word3} soon.",
+        ]
+
+        # Category definitions for classification
+        self.categories = {
             0: {
-                "name": "IoT Device",
-                "typical_ports": [80],
-                "base_risk": 0.3,
-                "description": "Smart home devices, cameras, sensors",
+                "name": "Ham",
+                "description": "Legitimate email (not spam)",
+                "base_spam_score": 0.1,
             },
             1: {
-                "name": "Linux Server",
-                "typical_ports": [22, 80, 443],
-                "base_risk": 0.4,
-                "description": "Web servers, application servers",
-            },
-            2: {
-                "name": "Windows PC",
-                "typical_ports": [135, 3389, 445],
-                "base_risk": 0.6,
-                "description": "Desktop computers, workstations",
-            },
-            3: {
-                "name": "Printer",
-                "typical_ports": [631, 9100],
-                "base_risk": 0.2,
-                "description": "Network printers, scanners",
-            },
-            4: {
-                "name": "Router/Gateway",
-                "typical_ports": [22, 80, 443, 8080],
-                "base_risk": 0.5,
-                "description": "Network infrastructure devices",
-            },
-            5: {
-                "name": "Vulnerable Device",
-                "typical_ports": [23, 21, 3389, 445],
-                "base_risk": 0.9,
-                "description": "Devices with high-risk services",
+                "name": "Spam",
+                "description": "Unwanted promotional or scam email",
+                "base_spam_score": 0.9,
             },
         }
 
-    def extract_features(self, ports: List[int]) -> List[float]:
+    def generate_email_text(self, is_spam: bool) -> str:
         """
-        Extract a 10-dimensional feature vector from a list of open ports.
-
-        This is the core feature engineering step. Each port configuration
-        gets transformed into numerical features that represent network
-        characteristics. Examples:
-        - Presence of well-known ports (SSH, RDP, SMB, FTP)
-        - Port range (max - min port number)
-        - Number of high ports (>1024) indicating services
+        Generate realistic email text based on spam/ham patterns.
 
         Args:
-            ports: List of integer port numbers.
+            is_spam: True if generating spam, False for ham.
+
+        Returns:
+            Generated email text string.
+        """
+        if is_spam:
+            template = random.choice(self.spam_templates)
+            words = random.sample(self.spam_words, 3)
+            text = template.format(word1=words[0], word2=words[1], word3=words[2])
+            # Randomly add more spam words
+            for _ in range(random.randint(2, 5)):
+                text += f" {random.choice(self.spam_words)}"
+        else:
+            template = random.choice(self.ham_templates)
+            words = random.sample(self.ham_words, 3)
+            text = template.format(word1=words[0], word2=words[1], word3=words[2])
+            # Randomly add more ham words
+            for _ in range(random.randint(2, 5)):
+                text += f" {random.choice(self.ham_words)}"
+
+        # Add some neutral words for realism
+        neutral = " ".join(random.sample(self.neutral_words, random.randint(3, 6)))
+        text = f"{neutral} {text}"
+
+        return text.lower()
+
+    def extract_features(self, email_text: str) -> List[float]:
+        """
+        Extract a 10-dimensional feature vector from email text.
+
+        This is the core feature engineering step. Each email
+        gets transformed into numerical features that represent
+        spam/ham characteristics. Examples:
+        - Count of spam-related words
+        - Count of ham-related words
+        - Presence of urgency indicators
+        - Text length characteristics
+
+        Args:
+            email_text: The email text content.
 
         Returns:
             List of 10 floats representing extracted features:
-            [0]: Total number of open ports
-            [1]: SSH port (22) presence
-            [2]: HTTP port (80) presence
-            [3]: HTTPS port (443) presence
-            [4]: Telnet port (23) presence
-            [5]: RDP port (3389) presence
-            [6]: SMB port (445) presence
-            [7]: FTP port (21) presence
-            [8]: Port range (max - min)
-            [9]: High ports count (>1024)
+            [0]: Total word count
+            [1]: Spam word count
+            [2]: Ham word count
+            [3]: Spam to total word ratio
+            [4]: Has urgency words (urgent, act now, immediately)
+            [5]: Has money words (free, cash, money, prize)
+            [6]: Has exclamation marks
+            [7]: Exclamation mark count
+            [8]: Average word length
+            [9]: Uppercase word ratio (before lowercasing)
 
         This is called FEATURE ENGINEERING - the most important part of ML!
         """
-        if not ports:
+        if not email_text:
             return [0.0] * 10
 
-        # Feature 0: Total number of open ports
-        num_ports = len(ports)
+        words = email_text.lower().split()
 
-        # Features 1-7: Presence of specific important ports (binary features)
-        has_ssh = 1 if 22 in ports else 0  # SSH (secure remote access)
-        has_http = 1 if 80 in ports else 0  # HTTP (web server)
-        has_https = 1 if 443 in ports else 0  # HTTPS (secure web)
-        has_telnet = 1 if 23 in ports else 0  # Telnet (insecure!)
-        has_rdp = 1 if 3389 in ports else 0  # Remote Desktop
-        has_smb = 1 if 445 in ports else 0  # File sharing
-        has_ftp = 1 if 21 in ports else 0  # File transfer
+        # Feature 0: Total word count
+        word_count = len(words)
 
-        # Feature 8: Port range spread (max - min)
-        port_spread = max(ports) - min(ports) if len(ports) > 1 else 0
+        # Feature 1: Count of spam-related words
+        spam_word_count = sum(1 for w in words if w in self.spam_words)
 
-        # Feature 9: Number of high ports (> 1024)
-        high_ports = len([p for p in ports if p > 1024])
+        # Feature 2: Count of ham-related words
+        ham_word_count = sum(1 for w in words if w in self.ham_words)
 
-        # Return as list of floats (required by scikit-learn)
+        # Feature 3: Spam to total word ratio
+        spam_ratio = spam_word_count / word_count if word_count > 0 else 0
+
+        # Feature 4: Has urgency words
+        urgency_words = {"urgent", "act", "now", "immediately", "hurry", "limited"}
+        has_urgency = 1 if any(w in urgency_words for w in words) else 0
+
+        # Feature 5: Has money-related words
+        money_words = {"free", "cash", "money", "prize", "winner", "million", "dollar"}
+        has_money = 1 if any(w in money_words for w in words) else 0
+
+        # Feature 6: Has exclamation marks
+        has_exclamation = 1 if "!" in email_text else 0
+
+        # Feature 7: Exclamation mark count
+        exclamation_count = email_text.count("!")
+
+        # Feature 8: Average word length
+        avg_word_length = (
+            sum(len(w) for w in words) / word_count if word_count > 0 else 0
+        )
+
+        # Feature 9: Uppercase ratio (calculate before lowercasing in real scenario)
+        uppercase_ratio = spam_word_count / word_count if word_count > 0 else 0
+
         return [
-            float(num_ports),  # [0] Total ports
-            float(has_ssh),  # [1] Has SSH
-            float(has_http),  # [2] Has HTTP
-            float(has_https),  # [3] Has HTTPS
-            float(has_telnet),  # [4] Has Telnet (risky!)
-            float(has_rdp),  # [5] Has RDP (risky!)
-            float(has_smb),  # [6] Has SMB (risky!)
-            float(has_ftp),  # [7] Has FTP (risky!)
-            float(port_spread),  # [8] Port range
-            float(high_ports),  # [9] High port count
+            float(word_count),  # [0] Total words
+            float(spam_word_count),  # [1] Spam words
+            float(ham_word_count),  # [2] Ham words
+            float(spam_ratio),  # [3] Spam ratio
+            float(has_urgency),  # [4] Has urgency
+            float(has_money),  # [5] Has money words
+            float(has_exclamation),  # [6] Has exclamation
+            float(exclamation_count),  # [7] Exclamation count
+            float(avg_word_length),  # [8] Avg word length
+            float(uppercase_ratio),  # [9] Uppercase ratio
         ]
 
-    def generate_sample(self, device_type: int) -> Tuple[List[float], int, float]:
+    def generate_sample(self, category: int) -> Tuple[List[float], int, float, str]:
         """
-        Generate a single realistic training sample for a specific device type.
+        Generate a single realistic training sample for spam or ham.
 
-        Simulates typical port patterns with realistic noise (30% chance of additional
-        ports). Risk scores have Gaussian noise added to reflect real-world variation.
+        Simulates typical email patterns with realistic noise.
+        Spam scores have Gaussian noise added to reflect real-world variation.
 
         Args:
-            device_type: Integer ID of the device type (0-5).
+            category: Integer ID of the category (0=ham, 1=spam).
 
         Returns:
             Tuple containing:
             - features: List of 10 floats representing engineered features
-            - device_type: The input device type ID
-            - risk_score: Float between 0.0 and 1.0 indicating network risk
+            - category: The input category ID (0 or 1)
+            - spam_score: Float between 0.0 and 1.0 indicating spam likelihood
+            - email_text: The generated email text
         """
-        pattern = self.device_patterns[device_type]
-
-        # Start with typical ports for this device type
-        ports = pattern["typical_ports"].copy()
-
-        # Add realistic noise (30% chance of additional ports)
-        if random.random() > 0.7:
-            # Add 1-3 random ports to simulate real-world variation
-            extra_ports = random.sample(range(1024, 65535), random.randint(1, 3))
-            ports.extend(extra_ports)
+        is_spam = category == 1
+        email_text = self.generate_email_text(is_spam)
 
         # Extract features
-        sample_features = self.extract_features(ports)
+        sample_features = self.extract_features(email_text)
 
-        # Generate risk score with some noise
-        base_risk = pattern["base_risk"]
-        # Add Gaussian noise (normal distribution) to make it realistic
-        risk_noise = random.gauss(0, 0.1)  # mean=0, std=0.1
-        risk_score = max(0.0, min(1.0, base_risk + risk_noise))
+        # Generate spam score with some noise
+        base_score = self.categories[category]["base_spam_score"]
+        score_noise = random.gauss(0, 0.1)  # mean=0, std=0.1
+        spam_score = max(0.0, min(1.0, base_score + score_noise))
 
-        return sample_features, device_type, risk_score
+        return sample_features, category, spam_score, email_text
 
     def generate_dataset(
         self, samples_per_class: int = 100
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
         """
-        Generate a complete balanced training dataset across all device types.
+        Generate a complete balanced training dataset of spam and ham emails.
 
-        Creates multiple samples for each device type (6 types total) using
+        Creates multiple samples for each category (2 categories total) using
         generate_sample(). Returns data in NumPy array format suitable for
         scikit-learn models.
 
         Args:
-            samples_per_class: Number of samples to generate per device type (default 100).
+            samples_per_class: Number of samples to generate per category (default 100).
 
         Returns:
             Tuple containing:
-            - X: Feature matrix of shape (600, 10) with scaled and normalized data
-            - y_device: Device type labels of shape (600,)
-            - y_risk: Risk score labels of shape (600,)
+            - X: Feature matrix of shape (200, 10) with numerical features
+            - y_category: Category labels of shape (200,) - 0=ham, 1=spam
+            - y_spam_score: Spam score labels of shape (200,)
+            - texts: List of email text strings
         """
 
         all_features = []
-        all_device_labels = []
-        all_risk_scores = []
+        all_category_labels = []
+        all_spam_scores = []
+        all_texts = []
 
-        print("🏭 Generating training data...")
-        print(f"📊 Creating {samples_per_class} samples per device type...")
+        print("Generating training data...")
+        print(f"Creating {samples_per_class} samples per category...")
 
-        # Generate samples for each device type
-        for device_type in range(6):  # 0-5 device types
-            device_name = self.device_patterns[device_type]["name"]
-            print(f"   📱 Generating {device_name} samples...")
+        # Generate samples for each category
+        for category in range(2):  # 0=ham, 1=spam
+            category_name = self.categories[category]["name"]
+            print(f"   Generating {category_name} samples...")
 
             for _ in range(samples_per_class):
-                sample_features, label, risk = self.generate_sample(device_type)
+                sample_features, label, spam_score, text = self.generate_sample(
+                    category
+                )
                 all_features.append(sample_features)
-                all_device_labels.append(label)
-                all_risk_scores.append(risk)
+                all_category_labels.append(label)
+                all_spam_scores.append(spam_score)
+                all_texts.append(text)
 
         # Convert to numpy arrays (required by scikit-learn)
-        features_matrix = np.array(all_features)  # Features: shape (600, 10)
-        device_labels = np.array(all_device_labels)  # Device labels: shape (600,)
-        risk_scores = np.array(all_risk_scores)  # Risk scores: shape (600,)
+        features_matrix = np.array(all_features)
+        category_labels = np.array(all_category_labels)
+        spam_scores = np.array(all_spam_scores)
 
-        print(f"✅ Generated {len(features_matrix)} total samples")
-        print(f"📏 Feature matrix shape: {features_matrix.shape}")
-        print(f"🏷️ Device labels shape: {device_labels.shape}")
-        print(f"⚡ Risk scores shape: {risk_scores.shape}")
+        print(f"Generated {len(features_matrix)} total samples")
+        print(f"Feature matrix shape: {features_matrix.shape}")
+        print(f"Category labels shape: {category_labels.shape}")
+        print(f"Spam scores shape: {spam_scores.shape}")
 
-        return features_matrix, device_labels, risk_scores
+        return features_matrix, category_labels, spam_scores, all_texts
 
-    def get_device_name(self, device_type: int) -> str:
+    def get_category_name(self, category: int) -> str:
         """
-        Retrieve the human-readable name for a device type.
+        Retrieve the human-readable name for a category.
 
         Args:
-            device_type: Integer identifier for the device type (0-5).
+            category: Integer identifier for the category (0=ham, 1=spam).
 
         Returns:
-            String name of the device type (e.g., 'Linux Server', 'Windows PC').
+            String name of the category ('Ham' or 'Spam').
         """
-        return self.device_patterns[device_type]["name"]
+        return self.categories[category]["name"]
+
+    # Backwards compatibility alias
+    def get_device_name(self, category: int) -> str:
+        """Alias for get_category_name for backwards compatibility."""
+        return self.get_category_name(category)
 
 
 # Test the data generator
 if __name__ == "__main__":
-    generator = NetworkDataGenerator()
+    generator = EmailDataGenerator()
+
+    # Test email generation
+    print("Sample spam email:")
+    spam_text = generator.generate_email_text(is_spam=True)
+    print(f"  {spam_text}")
+
+    print("\nSample ham email:")
+    ham_text = generator.generate_email_text(is_spam=False)
+    print(f"  {ham_text}")
 
     # Test feature extraction
-    test_ports = [22, 80, 443, 3389]  # SSH + HTTP + HTTPS + RDP
-    features = generator.extract_features(test_ports)
-    print(f"Test ports {test_ports} -> Features: {features}")
+    print("\nFeature extraction example:")
+    features = generator.extract_features(spam_text)
+    print(f"  Spam text features: {features}")
+
+    features = generator.extract_features(ham_text)
+    print(f"  Ham text features: {features}")
 
     # Generate small dataset
-    sample_features_matrix, sample_device_labels, sample_risk_scores = (
+    print("\n" + "=" * 50)
+    sample_features_matrix, sample_category_labels, sample_spam_scores, sample_texts = (
         generator.generate_dataset(samples_per_class=10)
     )
     print("\nSample features (first 3 rows):")
     print(sample_features_matrix[:3])
-    print(f"\nSample device labels (first 10): {sample_device_labels[:10]}")
-    print(f"Sample risk scores (first 10): {sample_risk_scores[:10]}")
+    print(f"\nSample category labels (first 10): {sample_category_labels[:10]}")
+    print(f"Sample spam scores (first 5): {sample_spam_scores[:5]}")
+    print(f"\nSample email texts:")
+    for i in range(3):
+        label = "SPAM" if sample_category_labels[i] == 1 else "HAM"
+        print(f"  [{label}] {sample_texts[i][:60]}...")
