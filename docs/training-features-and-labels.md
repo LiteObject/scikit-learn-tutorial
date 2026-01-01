@@ -220,7 +220,7 @@ It's really that simple! Once you get this concept, everything else in machine l
 
 Now that you understand the data format, you're ready to:
 
-1. **Run the tutorial**: See this in action with `python network_security_ml.py`
+1. **Run the tutorial**: See this in action with `python email_spam_ml.py`
 2. **Explore feature engineering**: Check out [feature-engineering.md](feature-engineering.md)
 3. **Learn about model types**: Read [classification-vs-regression.md](classification-vs-regression.md)
 
